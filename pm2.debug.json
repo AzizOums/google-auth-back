@@ -1,0 +1,12 @@
+{
+  "apps": [
+    {
+      "name": "google-auth",
+      "script": "./src/index.ts",
+      "watch": "src",
+      "env":{
+        "NODE_OPTIONS":"--inspect --inspect-port 9233"
+      }
+    }
+  ]
+}

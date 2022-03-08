@@ -1,0 +1,37 @@
+{
+  "name": "google-auth",
+  "version": "1.0.0",
+  "description": "authentification with google account",
+  "main": "src/index.ts",
+  "scripts": {
+    "prepare": "./node_modules/.bin/pm2 install typescript",
+    "start:debug": "./node_modules/.bin/pm2 start pm2.debug.json",
+    "build": "rimraf ./dist && tsc",
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "start": "node dist/index.js"
+  },
+  "author": "Aziz",
+  "license": "ISC",
+  "dependencies": {
+    "@types/cors": "^2.8.12",
+    "@types/passport-google-oauth2": "^0.1.4",
+    "axios": "^0.26.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.0.0",
+    "express": "^4.17.3",
+    "express-session": "^1.17.2",
+    "google-auth-library": "^7.14.0",
+    "googleapis": "^95.0.0",
+    "passport": "^0.5.2",
+    "passport-google-oauth2": "^0.2.0"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.13",
+    "@types/express-session": "^1.17.4",
+    "@types/node": "^17.0.21",
+    "@types/passport": "^1.0.7",
+    "pm2": "^5.2.0",
+    "ts-node": "^10.5.0",
+    "typescript": "^4.5.5"
+  }
+}
