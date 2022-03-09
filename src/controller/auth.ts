@@ -23,13 +23,13 @@ export const signin = (req: Request, res: Response, next: NextFunction) => {
       state: "GOOGLE_LOGIN",
       access_type: "offline",
     });
-    return res.redirect(auth_url);
+    return res.status(302).redirect(auth_url);
   } catch (err) {
-    next(err);
+    return next(err);
   }
 };
 
-export const callbackURL = async (
+export const login = async (
   req: Request,
   res: Response,
   next: NextFunction
@@ -44,13 +44,35 @@ export const callbackURL = async (
       version: "v2",
     });
     const { data } = await oauth2.userinfo.get();
+    // @ts-ignore
+    req.session.user = data;
     if (from) {
-      const url = `${from}?user=${JSON.stringify(data)}`;
+      const url = `${from}?sID=${req.sessionID}`;
       from = "";
-      return res.redirect(url);
+      return res.status(302).redirect(url);
     }
     return res.status(200).send(data);
   } catch (err) {
     return next(err);
+  }
+};
+
+export const logout = (req: Request, res: Response, next: NextFunction) => {
+  req.session.destroy((err) => {
+    if (err) return next(err);
+    return res.status(200).send({ message: "user logged out" });
+  });
+};
+
+export const session = (req: Request, res: Response, next: NextFunction) => {
+  try {
+    const { session } = req;
+    // @ts-ignore
+    if (!session || !session.user) throw new Error("User unauthenticated");
+    // @ts-ignore
+    const { user } = session;
+    return res.status(200).send(user);
+  } catch (error: any) {
+    return next({ status: 403, message: error?.message });
   }
 };
