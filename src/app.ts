@@ -38,6 +38,7 @@ const init = async () => {
     session({
       secret,
       store,
+      cookie: { domain: ".vita.org" },
       name: "_session",
       saveUninitialized: true,
       resave: false,

@@ -47,7 +47,10 @@ export const login = async (
     // @ts-ignore
     req.session.user = data;
     if (from) {
-      const url = `${from}?sID=${req.sessionID}`;
+      res.cookie("sessionID", req.sessionID, {
+        domain: ".vita.org",
+      });
+      const url = `${from}`;
       from = "";
       return res.status(302).redirect(url);
     }
