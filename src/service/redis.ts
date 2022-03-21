@@ -3,7 +3,11 @@ import session from "express-session";
 import connectRedis from "connect-redis";
 
 const RedisStore = connectRedis(session);
-const client = createClient({ host: "localhost", port: 6379 });
+
+const host = process.env.REDIS_HOST as string;
+const port = parseInt(process.env.REDIS_PORT as string, 10);
+
+const client = createClient({ host, port });
 
 client.on("error", (err: Error) =>
   console.log("Could not establish a connection with redis. " + err)
@@ -12,10 +16,10 @@ client.on("error", (err: Error) =>
 client.on("connect", () => console.log("Connected to redis successfully"));
 
 const redisConfig = {
-  host: "localhost",
-  port: 6379,
-  ttl: 43200,
+  host,
+  port,
   client,
+  ttl: 43200,
 };
 
 const secret = process.env.SESSION_SECRET as string;
