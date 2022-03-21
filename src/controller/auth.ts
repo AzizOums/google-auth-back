@@ -1,5 +1,6 @@
 import { Request, Response, NextFunction } from "express";
 import { google } from "googleapis";
+import { store, cookie } from "../service/redis";
 
 const Oauth2Client = new google.auth.OAuth2(
   process.env.GOOGLE_CLIENT_ID,
@@ -12,17 +13,21 @@ const scope = [
   "https://www.googleapis.com/auth/userinfo.email", // get user email ID and if its verified or not
 ];
 
-let from = "";
+const name = "sessionID";
+let redirectUris = {} as any;
 
 export const signin = (req: Request, res: Response, next: NextFunction) => {
   try {
-    if (req.query?.from) from = req.query?.from as string;
+    const { sessionID } = req;
+    const { from } = req.query;
+    if (sessionID) if (from) redirectUris[sessionID] = from as string;
     const auth_url = Oauth2Client.generateAuthUrl({
       scope,
       prompt: "consent",
       state: "GOOGLE_LOGIN",
       access_type: "offline",
     });
+
     return res.status(302).redirect(auth_url);
   } catch (err) {
     return next(err);
@@ -35,6 +40,9 @@ export const login = async (
   next: NextFunction
 ) => {
   try {
+    const { sessionID } = req;
+    const redirectUri = sessionID ? redirectUris[sessionID] : "";
+
     const { code } = req.query;
     const { tokens } = await Oauth2Client.getToken(code as string);
     const oauth2Client = new google.auth.OAuth2();
@@ -46,13 +54,10 @@ export const login = async (
     const { data } = await oauth2.userinfo.get();
     // @ts-ignore
     req.session.user = data;
-    if (from) {
-      res.cookie("sessionID", req.sessionID, {
-        domain: ".vita.org",
-      });
-      const url = `${from}`;
-      from = "";
-      return res.status(302).redirect(url);
+    if (redirectUri) {
+      delete redirectUris[sessionID];
+      res.cookie(name, req.sessionID, cookie);
+      return res.status(302).redirect(redirectUri);
     }
     return res.status(200).send(data);
   } catch (err) {
@@ -61,8 +66,11 @@ export const login = async (
 };
 
 export const logout = (req: Request, res: Response, next: NextFunction) => {
+  const { sessionid } = req.headers;
+  if (sessionid) store.destroy(sessionid as string);
   req.session.destroy((err) => {
     if (err) return next(err);
+    res.clearCookie(name, cookie);
     return res.status(200).send({ message: "user logged out" });
   });
 };
